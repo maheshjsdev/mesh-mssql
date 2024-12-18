@@ -2,19 +2,19 @@
 FROM node:20
 
 # Set working directory
-WORKDIR /src
+WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package*.json ./
+COPY ["package.json", "package-lock.json*", "./"]
 
 # Install dependencies
 RUN npm install --production
 
 # Copy app files
-COPY . /src
+COPY . .
 
 # Expose the port your app runs on
 EXPOSE 4000
 
 # Start the application
-CMD ["npm", "dev"]
+CMD ["npm", "src/index.ts"]
