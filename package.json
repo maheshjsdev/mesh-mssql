@@ -1,0 +1,31 @@
+{
+  "name": "mesh-be",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx nodemon",
+    "build": "npx tsc"
+  },
+  "author": "mahesh",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/mysql": "^2.15.26",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "msnodesqlv8": "^4.4.0",
+    "mssql": "^11.0.1",
+    "mysql2": "^3.11.5",
+    "nodemon": "^3.1.9"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/mssql": "^9.1.5",
+    "@types/node": "^22.10.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.2"
+  }
+}
