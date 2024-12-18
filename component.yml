@@ -1,0 +1,6 @@
+schemaVersion: 1.0
+endpoints:
+  - name: my-service-endpoint
+    service:
+      port: 4000  # Change this to the port your Node.js app listens on
+    type: REST
