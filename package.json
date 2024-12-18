@@ -4,6 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+     "type": "module",
     "dev": "npx nodemon",
     "build": "npx tsc"
   },
