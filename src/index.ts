@@ -1,7 +1,7 @@
-const express = require("express");
-const cors = require("cors");
-const { getConnection } = require("./core/db.core");
-const { userRouter } = require("./modules/user-management/user.controller");
+import express, { Express } from "express";
+import cors from "cors";
+import { getConnection } from "./core/db.core";
+import { userRouter } from "./modules/user-management/user.controller";
 
 
 const app = express();
