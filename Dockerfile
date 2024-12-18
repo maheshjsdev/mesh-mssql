@@ -8,13 +8,16 @@ WORKDIR /app
 COPY ["package.json", "package-lock.json*", "./"]
 
 # Install dependencies
-RUN npm install --production
+RUN npm install
 
 # Copy app files
 COPY . .
+
+# Compile TypeScript to JavaScript
+RUN npm run build
 
 # Expose the port your app runs on
 EXPOSE 4000
 
 # Start the application
-CMD ["npm", "src/index.ts"]
+CMD ["node", "dist/index.js"]
