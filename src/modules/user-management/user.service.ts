@@ -33,12 +33,21 @@ const deleteUser = async (req: Request, res: Response) => {
     res.json("fail");
   }
 };
+const chnageUserStatus = async (req: Request, res: Response) => {
+  try {
+    const result = await userData.chnageUserStatus(req.body);
+    res.send(result);
+  } catch (err) {
+    res.json("fail");
+  }
+};
 
 const userService = {
   getAllUser,
   addUser,
   editUser,
   deleteUser,
+  chnageUserStatus
 };
 
 export default userService;

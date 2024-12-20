@@ -5,3 +5,4 @@ userRouter.get("/getuser", userService.getAllUser);
 userRouter.post("/adduser", userService.addUser);
 userRouter.post("/edituser", userService.editUser);
 userRouter.post("/deleteuser", userService.deleteUser);
+userRouter.post("/changeuserstatus", userService.chnageUserStatus);

@@ -85,11 +85,31 @@ const deleteUser = async (body: { id: number }) => {
   }
 };
 
+const chnageUserStatus = async (body: { id: number; user_status: boolean }) => {
+  try {
+    const pool = await getConnection();
+    const promisePool = pool.promise();
+    const { user_status, id } = body;
+    const query = `UPDATE userDetails SET user_status = ? WHERE id = ?`;
+    const [result] = await promisePool.query(query, [user_status, id]);
+
+    return {
+      success: true,
+      message: "Changing user status successfully.",
+      result,
+    };
+  } catch (error) {
+    console.error("Error changing user status:", error);
+    throw error;
+  }
+};
+
 const userData = {
   getUser,
   addUser,
   editUser,
   deleteUser,
+  chnageUserStatus,
 };
 
 export default userData;
