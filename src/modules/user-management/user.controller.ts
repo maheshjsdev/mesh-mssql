@@ -1,8 +1,11 @@
-import exprees, { Router } from "express";
+import express, { Router } from "express";
 import userService from "./user.service";
-export const userRouter: Router = exprees.Router();
-userRouter.get("/getuser", userService.getAllUser);
-userRouter.post("/adduser", userService.addUser);
-userRouter.post("/edituser", userService.editUser);
-userRouter.post("/deleteuser", userService.deleteUser);
-userRouter.post("/changeuserstatus", userService.chnageUserStatus);
+import { authenticateToken } from "../../core/token-authorize.core";
+
+export const userRouter: Router = express.Router();
+userRouter.get("/getuser", authenticateToken, userService.getAllUser);
+userRouter.post("/adduser", authenticateToken, userService.addUser);
+userRouter.post("/edituser", authenticateToken, userService.editUser);
+userRouter.post("/deleteuser", authenticateToken, userService.deleteUser);
+userRouter.post("/changeuserstatus", authenticateToken, userService.chnageUserStatus);
+userRouter.post("/login", userService.login);

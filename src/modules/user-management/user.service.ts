@@ -42,12 +42,29 @@ const chnageUserStatus = async (req: Request, res: Response) => {
   }
 };
 
+export const login = async (req: Request, res: Response) => {
+  try {
+    const result = await userData.login(req.body);
+
+    if (result.success) {
+      res.status(200).json(result);
+    } else {
+      res.status(401).json(result); // Unauthorized
+    }
+  } catch (err) {
+    console.error("Error in login route", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
+
+
 const userService = {
   getAllUser,
   addUser,
   editUser,
   deleteUser,
-  chnageUserStatus
+  chnageUserStatus,
+  login,
 };
 
 export default userService;

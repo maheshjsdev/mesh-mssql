@@ -10,7 +10,8 @@ export const ENV = {
   DB: process.env.TIDB_DATABASE,
   USER: process.env.TIDB_USER,
   PASSWORD:process.env.TIDB_PASSWORD,
-  SSL:process.env.TIDB_ENABLE_SSL
+  SSL:process.env.TIDB_ENABLE_SSL,
+  JWTSECRET:process.env.JWT_SECRET
 };
 
 

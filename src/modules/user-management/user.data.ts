@@ -1,4 +1,7 @@
+import { ENV } from "../../config/environment.config";
 import { getConnection } from "../../core/db.core";
+import jwt from "jsonwebtoken";
+const JWT_SECRET = `${ENV.JWTSECRET}`; // Replace with a secure key and store it in .env
 
 const getUser = async (body: any) => {
   try {
@@ -23,20 +26,22 @@ const addUser = async (body: {
   last_name: string;
   email: string;
   mobile_no: string;
+  password: string;
 }) => {
   try {
     const pool = await getConnection();
     const promisePool = pool.promise();
     const query = `
-        INSERT INTO userDetails (first_name, last_name, email, mobile_no) 
-        VALUES (?, ?, ?, ?)
+        INSERT INTO userDetails (first_name, last_name, email, mobile_no, password) 
+        VALUES (?, ?, ?, ?, ?)
       `;
-    const { first_name, last_name, email, mobile_no } = body;
+    const { first_name, last_name, email, mobile_no, password } = body;
     const [result] = await promisePool.query(query, [
       first_name,
       last_name,
       email,
       mobile_no,
+      password,
     ]);
     console.log("User added successfully:", result);
 
@@ -104,12 +109,50 @@ const chnageUserStatus = async (body: { id: number; user_status: boolean }) => {
   }
 };
 
+export const login = async (body: { email: string; password: string }) => {
+  try {
+    const pool = await getConnection();
+    const promisePool = pool.promise();
+    const { email, password } = body;
+
+    const query = `SELECT * FROM userDetails WHERE email = ? AND password = ?`;
+    const [rows] = await promisePool.query(query, [email, password]);
+
+    if (Array.isArray(rows) && rows.length > 0) {
+      const user = rows[0];
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user: user }, // Payload
+        JWT_SECRET, // Secret key
+        { expiresIn: "1h" } // Token expiry
+      );
+
+      return {
+        success: true,
+        message: "User login has been successful.",
+        user: user,
+        token: token, // Return the token in the response
+      };
+    } else {
+      return {
+        success: false,
+        message: "Invalid email or password.",
+      };
+    }
+  } catch (error) {
+    console.error("Error logging in user", error);
+    throw error;
+  }
+};
+
 const userData = {
   getUser,
   addUser,
   editUser,
   deleteUser,
   chnageUserStatus,
+  login,
 };
 
 export default userData;
