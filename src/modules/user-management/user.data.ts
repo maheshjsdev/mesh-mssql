@@ -123,9 +123,9 @@ export const login = async (body: { email: string; password: string }) => {
 
       // Generate JWT token
       const token = jwt.sign(
-        { user: user }, // Payload
+        { user }, // Payload
         JWT_SECRET, // Secret key
-        { expiresIn: "1h" } // Token expiry
+        { expiresIn: "8h" } // Token expiry
       );
 
       return {
@@ -146,6 +146,36 @@ export const login = async (body: { email: string; password: string }) => {
   }
 };
 
+const verifyEmail = async (body: { email: string; password: string }) => {
+  try {
+    const pool = await getConnection();
+    const promisePool = pool.promise();
+    const { email, password } = body;
+    if (body && body.email && body.password === "") {
+      const query = `SELECT 1 FROM userDetails WHERE email = ? LIMIT 1`;
+      const [result] = await promisePool.query(query, [email]);
+
+      return {
+        success: true,
+        message: "Email is verified.",
+        result,
+      };
+    } else {
+      const query = `UPDATE userDetails SET password = ? WHERE email = ?`;
+      const [result] = await promisePool.query(query, [password, email]);
+
+      return {
+        success: true,
+        message: "Password has been successfully update.",
+        result,
+      };
+    }
+  } catch (error) {
+    console.error("Password updating error:", error);
+    throw error;
+  }
+};
+
 const userData = {
   getUser,
   addUser,
@@ -153,6 +183,7 @@ const userData = {
   deleteUser,
   chnageUserStatus,
   login,
+  verifyEmail,
 };
 
 export default userData;

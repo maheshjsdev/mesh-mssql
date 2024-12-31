@@ -57,6 +57,15 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const result = await userData.verifyEmail(req.body);
+    res.send(result);
+  } catch (err) {
+    res.json("fail");
+  }
+};
+
 
 const userService = {
   getAllUser,
@@ -65,6 +74,7 @@ const userService = {
   deleteUser,
   chnageUserStatus,
   login,
+  verifyEmail
 };
 
 export default userService;
