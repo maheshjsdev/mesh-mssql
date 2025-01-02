@@ -10,7 +10,7 @@ const getUser = async (body: any) => {
 
     // Ensure promise-based pool connection
     const promisePool = pool.promise();
-    const query = `SELECT * FROM userDetails`;
+    const query = `SELECT * FROM userDetails ORDER BY id DESC`;
 
     // Execute the query
     const [rows] = await promisePool.query(query);
