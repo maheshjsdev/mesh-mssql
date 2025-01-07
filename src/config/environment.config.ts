@@ -5,13 +5,11 @@ import path from "path";
 const envPath = path.resolve(__dirname, "../.env"); 
 dotenv.config({ path: envPath });
 export const ENV = {
-  PORT: process.env.TIDB_PORT,  
-  HOST: process.env.TIDB_HOST,
-  DB: process.env.TIDB_DATABASE,
-  USER: process.env.TIDB_USER,
-  PASSWORD:process.env.TIDB_PASSWORD,
-  SSL:process.env.TIDB_ENABLE_SSL,
-  JWTSECRET:process.env.JWT_SECRET
+  SERVER: process.env.SERVER,
+  PORT: process.env.PORT,
+  HOST: process.env.HOST,
+  DB: process.env.DATABASE,
+  DRIVER: process.env.DRIVER,
+  USER: process.env.USER,
+  JWTSECRET:process.env.JWTSECRET
 };
-
-

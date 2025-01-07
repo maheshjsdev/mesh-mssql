@@ -1,3 +1,4 @@
+import sql from "msnodesqlv8";
 import { ENV } from "../../config/environment.config";
 import { getConnection } from "../../core/db.core";
 import jwt from "jsonwebtoken";
@@ -8,14 +9,12 @@ const getUser = async (body: any) => {
     // Get a connection pool
     const pool = await getConnection();
 
-    // Ensure promise-based pool connection
-    const promisePool = pool.promise();
+    // Execute the query using sql.query
     const query = `SELECT * FROM userDetails ORDER BY id DESC`;
 
-    // Execute the query
-    const [rows] = await promisePool.query(query);
+    const result = await pool.request().query(query);
 
-    return rows;
+    return result.recordset;
   } catch (error) {
     console.error("Error fetching user details:", error);
     throw error;
@@ -30,19 +29,23 @@ const addUser = async (body: {
 }) => {
   try {
     const pool = await getConnection();
-    const promisePool = pool.promise();
     const query = `
-        INSERT INTO userDetails (first_name, last_name, email, mobile_no, password) 
-        VALUES (?, ?, ?, ?, ?)
-      `;
+      INSERT INTO userDetails (first_name, last_name, email, mobile_no, password) 
+      VALUES (@first_name, @last_name, @email, @mobile_no, @password)
+    `;
     const { first_name, last_name, email, mobile_no, password } = body;
-    const [result] = await promisePool.query(query, [
-      first_name,
-      last_name,
-      email,
-      mobile_no,
-      password,
-    ]);
+
+    // Create a request object
+    const request = pool.request();
+    request.input("first_name", first_name);
+    request.input("last_name", last_name);
+    request.input("email", email);
+    request.input("mobile_no", mobile_no);
+    request.input("password", password);
+
+    // Execute the query
+    const result = await request.query(query);
+
     console.log("User added successfully:", result);
 
     return {
@@ -59,15 +62,22 @@ const editUser = async (body: { id: number; [key: string]: any }) => {
   try {
     const { id, ...updates } = body;
     const pool = await getConnection();
-    const promisePool = pool.promise();
-
+    delete updates["user"];
     const fields = Object.keys(updates)
-      .map((key) => `${key} = ?`)
+      .map((key, index) => `[${key}] = @param${index}`)
       .join(", ");
-    const values = [...Object.values(updates), id];
+    const request = pool.request();
 
-    const query = `UPDATE userDetails SET ${fields} WHERE id = ?`;
-    const [result] = await promisePool.query(query, values);
+    Object.keys(updates).forEach((key, index) => {
+      request.input(`param${index}`, updates[key]);
+    });
+
+    const query = `UPDATE userDetails SET ${fields} WHERE id = @id`;
+    request.input("id", id);
+
+    const result = await request.query(query);
+
+    console.log("Query Result:", result);
 
     return { success: true, message: "User updated successfully.", result };
   } catch (error) {
@@ -75,32 +85,40 @@ const editUser = async (body: { id: number; [key: string]: any }) => {
     throw error;
   }
 };
+
 const deleteUser = async (body: { id: number }) => {
   try {
     const pool = await getConnection();
-    const promisePool = pool.promise();
     const { id } = body;
-    const query = `DELETE FROM userDetails WHERE id = ?`;
-    const [result] = await promisePool.query(query, [id]);
 
-    return { success: true, message: "User delete successfully.", result };
+    const query = `DELETE FROM userDetails WHERE id = @id`;
+    const request = pool.request();
+    request.input("id", id);
+
+    const result = await request.query(query);
+
+    return { success: true, message: "User deleted successfully.", result };
   } catch (error) {
     console.error("Error deleting user:", error);
     throw error;
   }
 };
 
-const chnageUserStatus = async (body: { id: number; user_status: boolean }) => {
+const changeUserStatus = async (body: { id: number; is_active: boolean }) => {
   try {
     const pool = await getConnection();
-    const promisePool = pool.promise();
-    const { user_status, id } = body;
-    const query = `UPDATE userDetails SET user_status = ? WHERE id = ?`;
-    const [result] = await promisePool.query(query, [user_status, id]);
+    const { is_active, id } = body;
+
+    const query = `UPDATE userDetails SET is_active = @is_active WHERE id = @id`;
+    const request = pool.request();
+    request.input("is_active", is_active);
+    request.input("id", id);
+
+    const result = await request.query(query);
 
     return {
       success: true,
-      message: "Changing user status successfully.",
+      message: "User status changed successfully.",
       result,
     };
   } catch (error) {
@@ -112,14 +130,17 @@ const chnageUserStatus = async (body: { id: number; user_status: boolean }) => {
 export const login = async (body: { email: string; password: string }) => {
   try {
     const pool = await getConnection();
-    const promisePool = pool.promise();
     const { email, password } = body;
 
-    const query = `SELECT * FROM userDetails WHERE email = ? AND password = ?`;
-    const [rows] = await promisePool.query(query, [email, password]);
+    const query = `SELECT * FROM userDetails WHERE email = @Email AND password = @Password`;
+    const request = pool.request();
+    request.input("Email", email);
+    request.input("Password", password);
 
-    if (Array.isArray(rows) && rows.length > 0) {
-      const user = rows[0];
+    const rows = await request.query(query);
+
+    if (Array.isArray(rows.recordset) && rows.recordset.length > 0) {
+      const user = rows.recordset[0];
 
       // Generate JWT token
       const token = jwt.sign(
@@ -149,27 +170,29 @@ export const login = async (body: { email: string; password: string }) => {
 const verifyEmail = async (body: { email: string; password: string }) => {
   try {
     const pool = await getConnection();
-    const promisePool = pool.promise();
     const { email, password } = body;
-    if (body && body.email && body.password === "") {
-      const query = `SELECT 1 FROM userDetails WHERE email = ? LIMIT 1`;
-      const [result] = await promisePool.query(query, [email]);
 
-      return {
-        success: true,
-        message: "Email is verified.",
-        result,
-      };
+    let query;
+    const request = pool.request();
+    if (email && password === "") {
+      query = `SELECT 1 FROM userDetails WHERE email = @Email`;
+      request.input("Email", email);
     } else {
-      const query = `UPDATE userDetails SET password = ? WHERE email = ?`;
-      const [result] = await promisePool.query(query, [password, email]);
-
-      return {
-        success: true,
-        message: "Password has been successfully update.",
-        result,
-      };
+      query = `UPDATE userDetails SET password = @Password WHERE email = @Email`;
+      request.input("Password", password);
+      request.input("Email", email);
     }
+
+    const result = await request.query(query);
+
+    return email && password === ""
+      ? { success: true, message: "Email is verified.", result }
+      : {
+          success: true,
+          msg:'confirm',
+          message: "Password has been successfully updated.",
+          result,
+        };
   } catch (error) {
     console.error("Password updating error:", error);
     throw error;
@@ -181,7 +204,7 @@ const userData = {
   addUser,
   editUser,
   deleteUser,
-  chnageUserStatus,
+  changeUserStatus,
   login,
   verifyEmail,
 };

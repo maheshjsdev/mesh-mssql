@@ -35,7 +35,7 @@ const deleteUser = async (req: Request, res: Response) => {
 };
 const chnageUserStatus = async (req: Request, res: Response) => {
   try {
-    const result = await userData.chnageUserStatus(req.body);
+    const result = await userData.changeUserStatus(req.body);
     res.send(result);
   } catch (err) {
     res.json("fail");

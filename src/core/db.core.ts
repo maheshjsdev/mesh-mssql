@@ -1,18 +1,24 @@
-import mysql from "mysql2";
+// db.core.ts
+import sql from "mssql/msnodesqlv8";
 import { ENV } from "../config/environment.config";
+
+// SQL Server configuration
+const config: sql.config = {
+  server: ENV.SERVER, // Replace with your server instance
+  database: ENV.DB, // Replace with your database name
+  options: {
+    trustedConnection: true, // Use Windows Authentication
+  },
+  driver: ENV.DRIVER, // Use msnodesqlv8 driver
+};
+
 export const getConnection = async () => {
-  return mysql.createPool({
-    host: ENV.HOST, // Hostname from environment variable
-    port: 4000, // Convert port to a number
-    user: ENV.USER, // User from environment variable
-    password: ENV.PASSWORD, // Password from environment variable
-    database: ENV.DB, // Database name from environment variable
-    ssl: {
-      minVersion: "TLSv1.2",
-      rejectUnauthorized: true,
-    },
-    connectionLimit: 1, // Limit to 1 connection in serverless environment
-    maxIdle: 1, // Max idle connections
-    enableKeepAlive: true, // Keep connections alive
-  });
+  try {
+    const pool = await sql.connect(config);
+    console.log("Connected to SQL Server successfully!");
+    return pool;
+  } catch (error) {
+    console.error("Error connecting to SQL Server:", error);
+    throw error;
+  }
 };
