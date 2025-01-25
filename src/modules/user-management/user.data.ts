@@ -3,6 +3,7 @@ import { ENV } from "../../config/environment.config";
 import { getConnection } from "../../core/db.core";
 import jwt from "jsonwebtoken";
 const JWT_SECRET = `${ENV.JWTSECRET}`; // Replace with a secure key and store it in .env
+import axios from "axios";
 
 const getUser = async (body: any) => {
   try {
@@ -127,10 +128,35 @@ const changeUserStatus = async (body: { id: number; is_active: boolean }) => {
   }
 };
 
-export const login = async (body: { email: string; password: string }) => {
+export const login = async (body: {
+  email: string;
+  password: string;
+  captcha: string;
+}) => {
   try {
     const pool = await getConnection();
-    const { email, password } = body;
+    const { email, password, captcha } = body;
+
+    // catpcha
+    // Verify CAPTCHA with Google reCAPTCHA
+    const recaptchaSecretKey = "6LfGsLAqAAAAAAjtdMX5eoABU-wBa78h9vGshseN"; // Replace with your secret key
+    const recaptchaResponse = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      null,
+      {
+        params: {
+          secret: recaptchaSecretKey,
+          response: captcha, // The CAPTCHA response token from the frontend
+        },
+      }
+    );
+console.log(recaptchaResponse)
+    if (!recaptchaResponse.data.success) {
+      return {
+        success: false,
+        message: "CAPTCHA verification failed.",
+      };
+    }
 
     const query = `SELECT * FROM userDetails WHERE email = @Email AND password = @Password`;
     const request = pool.request();
@@ -189,7 +215,7 @@ const verifyEmail = async (body: { email: string; password: string }) => {
       ? { success: true, message: "Email is verified.", result }
       : {
           success: true,
-          msg:'confirm',
+          msg: "confirm",
           message: "Password has been successfully updated.",
           result,
         };
